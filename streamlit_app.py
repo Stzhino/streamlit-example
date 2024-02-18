@@ -1,40 +1,24 @@
-import altair as alt
-import numpy as np
-import pandas as pd
 import streamlit as st
+from mitosheet.streamlit.v1 import spreadsheet
+import pandas as pd
+import os 
 
-"""
-# Welcome to Streamlit!
+st.set_page_config(layout="wide")
+st.write("Please import a .csv file and have it sorted and graphed with mito!!!!!.")
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True)
+if uploaded_files is not None:
+    for uploaded_file in uploaded_files:
+        file_name = uploaded_file.name
+        target_path = "./import_files/" + file_name  # Specify target folder and filename
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+        try:
+            with open(target_path, "wb") as f:  # Open in binary mode for CSV files
+                f.write(uploaded_file.getbuffer())
+            st.success("File uploaded successfully: " + file_name)
+        except Exception as e:
+            st.error(f"Error saving file: {e}")
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
-
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
-
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
-
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
-
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+import_folder = "./import_files"  # Use the folder where you saved the uploaded files
+new_dfs, usrdata = spreadsheet(import_folder=import_folder)
+st.code(usrdata)
